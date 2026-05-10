@@ -115,6 +115,9 @@ export function useTasks() {
   const removeTask = useCallback(async (id) => {
     const previous = tasks
     setTasks((prev) => prev.filter((t) => t._id !== id))
+    if (typeof id === 'string' && id.startsWith('tmp-')) {
+      return
+    }
     try {
       await api.deleteTask(id)
     } catch (err) {
