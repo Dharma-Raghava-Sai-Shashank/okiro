@@ -6,6 +6,7 @@ import {
   getISOWeek,
 } from 'date-fns'
 import Logo from './Logo'
+import LogoFlame from './LogoFlame'
 
 const SCOPES = [
   { key: 'year', label: 'Year' },
@@ -49,7 +50,7 @@ function anchorLabel(scope, anchor) {
   }
 }
 
-export default function ScopeNav({ scope, anchor, onScope, onStep, onToday }) {
+export default function ScopeNav({ scope, anchor, onScope, onStep, onToday, animatedLogo = false }) {
   const crumbs = buildBreadcrumb(scope, anchor)
   return (
     <div className="sticky top-2 z-40 pb-3">
@@ -74,7 +75,7 @@ export default function ScopeNav({ scope, anchor, onScope, onStep, onToday }) {
                     'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(219,234,254,0.85) 100%)',
                 }}
               >
-                <Logo size={22} />
+                {animatedLogo ? <LogoFlame /> : <Logo size={22} />}
               </div>
               <div className="leading-tight">
                 <div className="text-[16px] font-bold tracking-tight text-slate-900">
