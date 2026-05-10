@@ -4,6 +4,11 @@ function send(res, status, body) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, DELETE, OPTIONS",
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.end(JSON.stringify(body));
 }
 
