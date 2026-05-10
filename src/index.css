@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --color-pastel-amber: #fef3c7;
+  --color-pastel-butter: #fef9c3;
+  --color-pastel-mint: #d1fae5;
+  --color-pastel-sage: #dcfce7;
+  --color-pastel-aqua: #cffafe;
+  --color-pastel-sky: #dbeafe;
+  --color-pastel-periwinkle: #e0e7ff;
+  --color-pastel-lavender: #ede9fe;
+  --color-pastel-lilac: #f3e8ff;
+  --color-pastel-pink: #fce7f3;
+  --color-pastel-coral: #fee2e2;
+  --color-pastel-peach: #fed7aa;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+html, body {
+  background: #eff5fb;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display",
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: rgb(15 23 42);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.28);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.28; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.02); }
+}
+
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.glass-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.glass-shimmer:hover::before {
+  animation: shimmer 1.2s ease-out;
+}
+
+.today-ring {
+  position: relative;
+}
+.today-ring::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(96, 165, 250, 0.4) 0%,
+    rgba(59, 130, 246, 0.18) 55%,
+    transparent 80%
+  );
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0.5;
+  animation: pulseGlow 4s ease-in-out infinite;
+}
