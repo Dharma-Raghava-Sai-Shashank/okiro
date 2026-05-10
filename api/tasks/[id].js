@@ -71,6 +71,9 @@ export default async function handler(req, res) {
 
     const col = await getTasksCollection()
 
+    if (req.method === 'OPTIONS') {
+      return send(res, 204, {})
+    }
     if (req.method === 'PATCH') {
       const body = await readJson(req)
       const update = sanitize(body)

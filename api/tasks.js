@@ -30,6 +30,9 @@ export default async function handler(req, res) {
   try {
     const col = await getTasksCollection()
 
+    if (req.method === 'OPTIONS') {
+      return send(res, 204, {})
+    }
     if (req.method === 'GET') {
       const docs = await col
         .find({})
