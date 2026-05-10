@@ -65,6 +65,14 @@ function sanitize(body) {
 }
 
 export default async function handler(req, res) {
+  // Set CORS headers for all responses
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, DELETE, OPTIONS",
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   try {
     const id = req.query?.id || req.url.split("/").pop();
     let _id;
@@ -77,7 +85,9 @@ export default async function handler(req, res) {
     const col = await getTasksCollection();
 
     if (req.method === "OPTIONS") {
-      return send(res, 204, {});
+      res.statusCode = 200;
+      res.end();
+      return;
     }
     if (req.method === "PATCH") {
       const body = await readJson(req);

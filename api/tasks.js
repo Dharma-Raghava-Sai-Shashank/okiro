@@ -32,11 +32,21 @@ async function readJson(req) {
 }
 
 export default async function handler(req, res) {
+  // Set CORS headers for all responses
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, DELETE, OPTIONS",
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   try {
     const col = await getTasksCollection();
 
     if (req.method === "OPTIONS") {
-      return send(res, 204, {});
+      res.statusCode = 200;
+      res.end();
+      return;
     }
     if (req.method === "GET") {
       const docs = await col
