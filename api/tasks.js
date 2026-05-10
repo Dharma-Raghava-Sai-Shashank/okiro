@@ -1,71 +1,73 @@
-import { getTasksCollection } from './_db.js'
+import { getTasksCollection } from "./_db.js";
 
 function send(res, status, body) {
-  res.statusCode = status
-  res.setHeader('Content-Type', 'application/json')
-  res.setHeader('Cache-Control', 'no-store')
-  res.end(JSON.stringify(body))
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Cache-Control", "no-store");
+  res.end(JSON.stringify(body));
 }
 
 async function readJson(req) {
   if (req.body) {
-    return typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    return typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   }
   return new Promise((resolve, reject) => {
-    let buf = ''
-    req.setEncoding('utf8')
-    req.on('data', (chunk) => (buf += chunk))
-    req.on('end', () => {
+    let buf = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk) => (buf += chunk));
+    req.on("end", () => {
       try {
-        resolve(buf ? JSON.parse(buf) : {})
+        resolve(buf ? JSON.parse(buf) : {});
       } catch (e) {
-        reject(e)
+        reject(e);
       }
-    })
-    req.on('error', reject)
-  })
+    });
+    req.on("error", reject);
+  });
 }
 
 export default async function handler(req, res) {
   try {
-    const col = await getTasksCollection()
+    const col = await getTasksCollection();
 
-    if (req.method === 'OPTIONS') {
-      return send(res, 204, {})
+    if (req.method === "OPTIONS") {
+      return send(res, 204, {});
     }
-    if (req.method === 'GET') {
+    if (req.method === "GET") {
       const docs = await col
         .find({})
         .sort({ scope: 1, bucketKey: 1, order: 1 })
-        .toArray()
-      const tasks = docs.map((d) => ({ ...d, _id: d._id.toString() }))
-      return send(res, 200, { tasks })
+        .toArray();
+      const tasks = docs.map((d) => ({ ...d, _id: d._id.toString() }));
+      return send(res, 200, { tasks });
     }
 
-    if (req.method === 'POST') {
-      const body = await readJson(req)
-      const now = new Date()
+    if (req.method === "POST") {
+      const body = await readJson(req);
+      const now = new Date();
       const doc = {
-        title: String(body.title || '').slice(0, 200) || 'Untitled',
-        color: body.color || '#ede9fe',
-        scope: body.scope === 'day' ? 'day' : 'inbox',
-        bucketKey: body.scope === 'day' ? String(body.bucketKey || '') : '',
-        order: typeof body.order === 'number' ? body.order : Date.now(),
+        title: String(body.title || "").slice(0, 200) || "Untitled",
+        color: body.color || "#ede9fe",
+        scope: body.scope === "day" ? "day" : "inbox",
+        bucketKey: body.scope === "day" ? String(body.bucketKey || "") : "",
+        order: typeof body.order === "number" ? body.order : Date.now(),
         done: !!body.done,
         subtasks: Array.isArray(body.subtasks) ? body.subtasks : [],
-        progress: typeof body.progress === 'number' ? body.progress : 0,
-        notes: typeof body.notes === 'string' ? body.notes : '',
+        progress: typeof body.progress === "number" ? body.progress : 0,
+        notes: typeof body.notes === "string" ? body.notes : "",
         createdAt: now,
         updatedAt: now,
-      }
-      const result = await col.insertOne(doc)
-      return send(res, 201, { task: { ...doc, _id: result.insertedId.toString() } })
+      };
+      const result = await col.insertOne(doc);
+      return send(res, 201, {
+        task: { ...doc, _id: result.insertedId.toString() },
+      });
     }
 
-    res.setHeader('Allow', 'GET, POST')
-    return send(res, 405, { error: 'Method not allowed' })
+    res.setHeader("Allow", "GET, POST");
+    return send(res, 405, { error: "Method not allowed" });
   } catch (err) {
-    console.error('[api/tasks]', err)
-    return send(res, 500, { error: err.message || 'Internal error' })
+    console.error("[api/tasks]", err);
+    return send(res, 500, { error: err.message || "Internal error" });
   }
 }
