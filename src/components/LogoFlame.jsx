@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 
-export default function LogoFlame({ idSuffix = 'big', blurred = false }) {
+export default function LogoFlame({ idSuffix = 'big', blurred = false, refreshing = false }) {
   const gradId = `logo-flame-grad-${idSuffix}`
   const highlightId = `logo-flame-hi-${idSuffix}`
   const baseId = `logo-flame-base-${idSuffix}`
@@ -15,11 +15,23 @@ export default function LogoFlame({ idSuffix = 'big', blurred = false }) {
           ? 'blur(10px) drop-shadow(0 0 14px rgba(96, 165, 250, 0.55))'
           : 'drop-shadow(0 1px 2px rgba(15, 23, 42, 0.25)) drop-shadow(0 0 14px rgba(96, 165, 250, 0.5)) drop-shadow(0 0 6px rgba(59, 130, 246, 0.55))',
       }}
-      animate={{
-        scaleY: [1, 1.04, 0.97, 1.03, 1],
-        scaleX: [1, 0.98, 1.03, 0.99, 1],
-      }}
-      transition={{ duration: 2.7, repeat: Infinity, ease: 'easeInOut' }}
+      animate={
+        refreshing
+          ? {
+              scaleY: [1, 1.15, 0.9, 1.2, 0.95, 1.1, 1],
+              scaleX: [1, 0.9, 1.15, 0.95, 1.1, 0.9, 1],
+              y: [0, -2, 1, -3, 0],
+            }
+          : {
+              scaleY: [1, 1.04, 0.97, 1.03, 1],
+              scaleX: [1, 0.98, 1.03, 0.99, 1],
+            }
+      }
+      transition={
+        refreshing
+          ? { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
+          : { duration: 2.7, repeat: Infinity, ease: 'easeInOut' }
+      }
     >
       <defs>
         <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">

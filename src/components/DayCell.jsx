@@ -37,11 +37,13 @@ export default function DayCell({
     xl: 'min-h-[16rem] p-4',
   }[size]
 
-  const baseBg = today
-    ? 'linear-gradient(170deg, rgba(255, 255, 255, 0.78) 0%, rgba(219, 234, 254, 0.45) 50%, rgba(191, 219, 254, 0.32) 100%)'
+  const baseBg = size === 'xl'
+    ? 'rgba(255, 255, 255, 0.97)'
+    : today
+    ? 'linear-gradient(170deg, rgba(255, 255, 255, 0.96) 0%, rgba(229, 241, 255, 0.92) 50%, rgba(219, 234, 255, 0.88) 100%)'
     : weekend
-    ? 'linear-gradient(170deg, rgba(255, 255, 255, 0.62) 0%, rgba(248, 250, 252, 0.42) 50%, rgba(241, 245, 249, 0.30) 100%)'
-    : 'linear-gradient(170deg, rgba(255, 255, 255, 0.7) 0%, rgba(248, 250, 252, 0.45) 50%, rgba(255, 255, 255, 0.32) 100%)'
+    ? 'linear-gradient(170deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.90) 50%, rgba(245, 247, 250, 0.88) 100%)'
+    : 'linear-gradient(170deg, rgba(255, 255, 255, 0.96) 0%, rgba(250, 252, 255, 0.93) 50%, rgba(255, 255, 255, 0.90) 100%)'
 
   const dimmed = !inMonth ? 'opacity-40' : ''
 
@@ -59,18 +61,16 @@ export default function DayCell({
       } ${isOver ? 'ring-4 ring-blue-300/70' : ''}`}
       style={{
         background: baseBg,
-        backdropFilter: 'blur(22px) saturate(170%)',
-        WebkitBackdropFilter: 'blur(22px) saturate(170%)',
         boxShadow: today
-          ? '0 8px 24px -12px rgba(59, 130, 246, 0.28), 0 2px 6px -2px rgba(96, 165, 250, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(15, 23, 42, 0.06), inset 0 14px 28px -20px rgba(255, 255, 255, 0.7)'
-          : '0 6px 22px -12px rgba(30, 64, 175, 0.22), 0 2px 6px -2px rgba(96, 165, 250, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92), inset 0 -1px 0 rgba(15, 23, 42, 0.05), inset 0 12px 24px -20px rgba(255, 255, 255, 0.6)',
+          ? '0 8px 24px -12px rgba(59, 130, 246, 0.28), 0 2px 6px -2px rgba(96, 165, 250, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(15, 23, 42, 0.06)'
+          : '0 6px 22px -12px rgba(30, 64, 175, 0.22), 0 2px 6px -2px rgba(96, 165, 250, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92), inset 0 -1px 0 rgba(15, 23, 42, 0.05)',
       }}
       whileHover={{
         y: -3,
         scale: 1.015,
         boxShadow: today
-          ? '0 14px 38px -10px rgba(59, 130, 246, 0.36), 0 4px 10px -2px rgba(96, 165, 250, 0.24), inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(15, 23, 42, 0.06), inset 0 18px 32px -22px rgba(255, 255, 255, 0.85)'
-          : '0 14px 36px -10px rgba(30, 64, 175, 0.32), 0 4px 10px -2px rgba(96, 165, 250, 0.22), inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(15, 23, 42, 0.06), inset 0 16px 28px -22px rgba(255, 255, 255, 0.78)',
+          ? '0 14px 38px -10px rgba(59, 130, 246, 0.36), 0 4px 10px -2px rgba(96, 165, 250, 0.24), inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(15, 23, 42, 0.06)'
+          : '0 14px 36px -10px rgba(30, 64, 175, 0.32), 0 4px 10px -2px rgba(96, 165, 250, 0.22), inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(15, 23, 42, 0.06)',
       }}
       transition={{ type: 'spring', stiffness: 280, damping: 24 }}
     >
@@ -119,7 +119,7 @@ export default function DayCell({
         )}
       </div>
 
-      <div className="flex-1 flex flex-col gap-1.5 min-h-0 overflow-y-auto pr-0.5 relative z-[1]">
+      <div className="flex-1 flex flex-col gap-1 min-h-0 overflow-y-auto pr-0.5 relative z-[1]">
         {dayTasks.length === 0 && size !== 'sm' && (
           <div className="flex-1 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
             <span className="text-[10px] text-slate-400 font-medium tracking-wide italic">
@@ -131,8 +131,8 @@ export default function DayCell({
           <TaskChip
             key={t._id}
             task={t}
-            size={size === 'xl' ? 'md' : 'xs'}
-            showProgress={size !== 'sm'}
+            size={size === 'xl' ? 'sm' : 'xs'}
+            showProgress={false}
             onOpen={onOpen}
             onCycleColor={onCycleColor}
             fromBucketKey={dayKey}

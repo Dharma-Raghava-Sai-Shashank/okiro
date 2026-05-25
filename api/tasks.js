@@ -42,6 +42,7 @@ export default async function handler(req, res) {
 
   try {
     const col = await getTasksCollection();
+    const username = req.headers["x-username"] || "okiro";
 
     if (req.method === "OPTIONS") {
       res.statusCode = 200;
@@ -49,8 +50,11 @@ export default async function handler(req, res) {
       return;
     }
     if (req.method === "GET") {
+      const query = username === "okiro"
+        ? { $or: [ { username: "okiro" }, { username: { $exists: false } } ] }
+        : { username };
       const docs = await col
-        .find({})
+        .find(query)
         .sort({ scope: 1, bucketKey: 1, order: 1 })
         .toArray();
       const tasks = docs.map((d) => ({ ...d, _id: d._id.toString() }));
@@ -64,7 +68,7 @@ export default async function handler(req, res) {
         title: String(body.title || "").slice(0, 200) || "Untitled",
         color: body.color || "#ede9fe",
         scope: body.scope === "day" ? "day" : "inbox",
-        bucketKey: body.scope === "day" ? String(body.bucketKey || "") : "",
+        bucketKey: String(body.bucketKey || ""),
         order: typeof body.order === "number" ? body.order : Date.now(),
         done: !!body.done,
         subtasks: Array.isArray(body.subtasks) ? body.subtasks : [],
@@ -72,6 +76,7 @@ export default async function handler(req, res) {
         notes: typeof body.notes === "string" ? body.notes : "",
         createdAt: now,
         updatedAt: now,
+        username,
       };
       const result = await col.insertOne(doc);
       return send(res, 201, {

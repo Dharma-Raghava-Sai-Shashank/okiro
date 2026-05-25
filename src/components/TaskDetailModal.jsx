@@ -92,8 +92,6 @@ export default function TaskDetailModal({
             style={{
               background:
                 'linear-gradient(135deg, rgba(15, 23, 42, 0.45) 0%, rgba(76, 29, 149, 0.35) 100%)',
-              backdropFilter: 'blur(16px) saturate(140%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(140%)',
             }}
             onClick={close}
           />
@@ -107,9 +105,7 @@ export default function TaskDetailModal({
             className="relative w-full max-w-xl rounded-3xl border border-white/80 p-6 flex flex-col gap-5 max-h-[90vh] overflow-y-auto"
             style={{
               background:
-                'linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.78) 100%)',
-              backdropFilter: 'blur(40px) saturate(160%)',
-              WebkitBackdropFilter: 'blur(40px) saturate(160%)',
+                'linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.92) 100%)',
               boxShadow:
                 '0 40px 90px -20px rgba(15, 23, 42, 0.45), 0 8px 30px -8px rgba(76, 29, 149, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
             }}

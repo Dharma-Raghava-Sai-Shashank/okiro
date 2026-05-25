@@ -14,13 +14,27 @@ function deriveDone(task) {
   return task;
 }
 
-export function useTasks() {
+export function useTasks(username) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const debounceTimers = useRef(new Map());
 
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const data = await api.listTasks();
+      setTasks(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   useEffect(() => {
+    setLoading(true);
     let alive = true;
     api
       .listTasks()
@@ -37,7 +51,7 @@ export function useTasks() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [username]);
 
   const addTask = useCallback(async (title, opts = {}) => {
     const trimmed = (title || "").trim();
@@ -107,7 +121,7 @@ export function useTasks() {
     (id, scope, bucketKey, order) => {
       updateTask(id, {
         scope,
-        bucketKey: scope === "day" ? bucketKey : "",
+        bucketKey: bucketKey || "",
         order: typeof order === "number" ? order : Date.now(),
       });
     },
@@ -187,7 +201,9 @@ export function useTasks() {
   return {
     tasks,
     loading,
+    refreshing,
     error,
+    refresh,
     addTask,
     updateTask,
     moveTask,

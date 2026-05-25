@@ -20,13 +20,23 @@ import DayView from './components/DayView'
 import TaskChip from './components/TaskChip'
 import TaskDetailModal from './components/TaskDetailModal'
 import { useTasks } from './hooks/useTasks'
+import UsernameModal from './components/UsernameModal'
 import { stepAnchor, todayKey } from './lib/dates'
 
 export default function App() {
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem('okiro_username') || ''
+  })
+  const [showUsernameModal, setShowUsernameModal] = useState(() => {
+    return !localStorage.getItem('okiro_username')
+  })
+
   const {
     tasks,
     loading,
+    refreshing,
     error,
+    refresh,
     addTask,
     updateTask,
     moveTask,
@@ -35,7 +45,13 @@ export default function App() {
     toggleSubtask,
     editSubtask,
     removeSubtask,
-  } = useTasks()
+  } = useTasks(username)
+
+  const handleSaveUsername = (newUsername) => {
+    localStorage.setItem('okiro_username', newUsername)
+    setUsername(newUsername)
+    setShowUsernameModal(false)
+  }
 
   const [scope, setScope] = useState('month')
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()))
@@ -43,20 +59,16 @@ export default function App() {
   const [openTaskId, setOpenTaskId] = useState(null)
   const [openContextDate, setOpenContextDate] = useState(null)
   const [yearMode, setYearMode] = useState('cards')
+  const [activeInboxTab, setActiveInboxTab] = useState('Present')
 
   const isYearCalendar = scope === 'year' && yearMode === 'calendar'
 
   useEffect(() => {
-    const start = performance.now()
-    let rafId
-    const tick = () => {
+    // Single deferred resize instead of continuous 650ms loop
+    const timer = setTimeout(() => {
       window.dispatchEvent(new Event('resize'))
-      if (performance.now() - start < 650) {
-        rafId = requestAnimationFrame(tick)
-      }
-    }
-    rafId = requestAnimationFrame(tick)
-    return () => rafId && cancelAnimationFrame(rafId)
+    }, 100)
+    return () => clearTimeout(timer)
   }, [isYearCalendar])
 
   const sensors = useSensors(
@@ -111,9 +123,13 @@ export default function App() {
       removeTask(taskId)
       return
     }
+    if (target.type === 'inbox-tab') {
+      moveTask(taskId, 'inbox', target.tab, Date.now())
+      return
+    }
     if (target.type === 'inbox') {
       if (sourceTask.scope === 'day') {
-        moveTask(taskId, 'inbox', '', Date.now())
+        moveTask(taskId, 'inbox', activeInboxTab, Date.now())
       }
       return
     }
@@ -214,6 +230,8 @@ export default function App() {
               onAdd={addTask}
               onOpen={handleOpen}
               onCycleColor={handleCycleColor}
+              activeTab={activeInboxTab}
+              onTabChange={setActiveInboxTab}
             />
           </div>
 
@@ -224,6 +242,10 @@ export default function App() {
               onScope={handleScope}
               onStep={handleStep}
               onToday={handleToday}
+              refreshing={refreshing}
+              onRefresh={refresh}
+              username={username || 'okiro'}
+              onPromptUsername={() => setShowUsernameModal(true)}
             />
             {error && (
               <motion.div
@@ -258,6 +280,13 @@ export default function App() {
           onRemoveSubtask={(subId) =>
             openTask && removeSubtask(openTask._id, subId)
           }
+        />
+
+        <UsernameModal
+          isOpen={showUsernameModal}
+          currentUsername={username}
+          onSave={handleSaveUsername}
+          onClose={() => setShowUsernameModal(false)}
         />
       </div>
 

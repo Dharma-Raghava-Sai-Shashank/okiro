@@ -33,13 +33,10 @@ function MiniDayCell({ date, monthDate, dayTasks, onPickDay }) {
   const bands = bandsBackground(dayTasks)
 
   return (
-    <motion.button
+    <button
       type="button"
       onClick={() => onPickDay?.(date)}
-      whileHover={{ scale: 1.06, zIndex: 5 }}
-      whileTap={{ scale: 0.96 }}
-      transition={{ type: 'spring', stiffness: 320, damping: 22 }}
-      className={`relative rounded-lg cursor-pointer overflow-hidden ${
+      className={`relative rounded-lg cursor-pointer overflow-hidden transition-transform hover:scale-105 active:scale-95 ${
         inMonth ? '' : 'opacity-30'
       }`}
       style={{
@@ -82,7 +79,7 @@ function MiniDayCell({ date, monthDate, dayTasks, onPickDay }) {
       >
         {format(date, 'd')}
       </span>
-    </motion.button>
+    </button>
   )
 }
 
@@ -91,16 +88,12 @@ function MonthTile({ monthDate, tasksByKey, onPickDay, onPickMonth }) {
   const isCurrent = isSameMonth(monthDate, new Date())
 
   return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      transition={{ type: 'spring', stiffness: 280, damping: 24 }}
-      className={`rounded-2xl p-4 flex flex-col gap-3 ${
+    <div
+      className={`rounded-2xl p-4 flex flex-col gap-3 transition-transform hover:-translate-y-0.5 ${
         isCurrent ? 'border-2 border-blue-300' : 'border border-slate-200/70'
       }`}
       style={{
-        background: 'rgba(255, 255, 255, 0.85)',
-        backdropFilter: 'blur(20px) saturate(170%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(170%)',
+        background: 'rgba(255, 255, 255, 0.90)',
         boxShadow: isCurrent
           ? '0 10px 28px -14px rgba(59, 130, 246, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.9)'
           : '0 6px 18px -10px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85)',
@@ -141,7 +134,7 @@ function MonthTile({ monthDate, tasksByKey, onPickDay, onPickMonth }) {
           )
         })}
       </div>
-    </motion.div>
+    </div>
   )
 }
 

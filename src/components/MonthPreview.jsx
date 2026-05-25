@@ -28,13 +28,11 @@ export default function MonthPreview({ monthDate, tasks, onClick }) {
       }`}
       style={{
         background: isCurrent
-          ? 'linear-gradient(170deg, rgba(255, 255, 255, 0.88) 0%, rgba(219, 234, 254, 0.58) 50%, rgba(191, 219, 254, 0.42) 100%)'
-          : 'linear-gradient(170deg, rgba(255, 255, 255, 0.78) 0%, rgba(248, 250, 252, 0.5) 50%, rgba(255, 255, 255, 0.34) 100%)',
-        backdropFilter: 'blur(24px) saturate(175%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(175%)',
+          ? 'linear-gradient(170deg, rgba(255, 255, 255, 0.92) 0%, rgba(219, 234, 254, 0.72) 50%, rgba(191, 219, 254, 0.58) 100%)'
+          : 'linear-gradient(170deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 250, 252, 0.68) 50%, rgba(255, 255, 255, 0.52) 100%)',
         boxShadow: isCurrent
-          ? '0 14px 36px -12px rgba(59, 130, 246, 0.32), 0 4px 10px -2px rgba(96, 165, 250, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(15, 23, 42, 0.05), inset 0 18px 32px -22px rgba(255, 255, 255, 0.85)'
-          : '0 10px 30px -12px rgba(30, 64, 175, 0.22), 0 3px 8px -2px rgba(96, 165, 250, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(15, 23, 42, 0.05), inset 0 16px 28px -22px rgba(255, 255, 255, 0.7)',
+          ? '0 14px 36px -12px rgba(59, 130, 246, 0.32), 0 4px 10px -2px rgba(96, 165, 250, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(15, 23, 42, 0.05)'
+          : '0 10px 30px -12px rgba(30, 64, 175, 0.22), 0 3px 8px -2px rgba(96, 165, 250, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(15, 23, 42, 0.05)',
       }}
     >
       {isCurrent && (

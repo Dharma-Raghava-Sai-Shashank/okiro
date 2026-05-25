@@ -31,7 +31,9 @@ export default function AuroraBackground() {
           className="absolute rounded-full"
           style={{
             background: `radial-gradient(closest-side, ${b.color}, transparent 70%)`,
-            filter: 'blur(80px)',
+            /* Reduced blur from 80px → 40px for lighter GPU compositing */
+            filter: 'blur(40px)',
+            willChange: 'transform',
             ...b.style,
           }}
           animate={{ x: b.delta.x, y: b.delta.y }}

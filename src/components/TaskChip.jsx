@@ -50,7 +50,7 @@ export default function TaskChip({
     <motion.div
       ref={setNodeRef}
       onClick={handleClick}
-      className={`group relative cursor-pointer select-none rounded-full border border-white/70 backdrop-blur-md ${padding[size]} ${heights[size]} ${
+      className={`group relative cursor-pointer select-none rounded-full border border-white/70 ${padding[size]} ${heights[size]} ${
         isDragging ? 'opacity-30' : ''
       }`}
       style={{

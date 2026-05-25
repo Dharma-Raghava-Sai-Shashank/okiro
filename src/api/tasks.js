@@ -1,8 +1,10 @@
 async function jsonFetch(url, options = {}) {
+  const username = localStorage.getItem('okiro_username') || 'okiro'
   const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      'X-Username': username,
       ...(options.headers || {}),
     },
   })

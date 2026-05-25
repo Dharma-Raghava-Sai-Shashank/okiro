@@ -83,6 +83,14 @@ export default async function handler(req, res) {
     }
 
     const col = await getTasksCollection();
+    const username = req.headers["x-username"] || "okiro";
+
+    const query = { _id };
+    if (username === "okiro") {
+      query.$or = [ { username: "okiro" }, { username: { $exists: false } } ];
+    } else {
+      query.username = username;
+    }
 
     if (req.method === "OPTIONS") {
       res.statusCode = 200;
@@ -96,8 +104,9 @@ export default async function handler(req, res) {
         return send(res, 400, { error: "No valid fields to update" });
       }
       update.updatedAt = new Date();
+      update.username = username;
       const result = await col.findOneAndUpdate(
-        { _id },
+        query,
         { $set: update },
         { returnDocument: "after" },
       );
@@ -107,7 +116,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "DELETE") {
-      const r = await col.deleteOne({ _id });
+      const r = await col.deleteOne(query);
       if (r.deletedCount === 0) return send(res, 404, { error: "Not found" });
       return send(res, 200, { ok: true });
     }
