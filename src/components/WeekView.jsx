@@ -1,6 +1,7 @@
 import DayCell from './DayCell'
-import { daysOfWeek } from '../lib/dates'
-import { format } from 'date-fns'
+import TaskFlameCard from './TaskFlameCard'
+import DaySummaryCard from './DaySummaryCard'
+import { daysOfWeek, keyForDay } from '../lib/dates'
 
 export default function WeekView({
   anchor,
@@ -10,23 +11,43 @@ export default function WeekView({
   onPickDay,
 }) {
   const days = daysOfWeek(anchor)
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
-      {days.map((d) => (
-        <div key={d.toISOString()} className="flex flex-col gap-1">
-          <div className="text-[11px] uppercase tracking-wider text-slate-500 text-center font-medium">
-            {format(d, 'EEE d MMM')}
+    <div className="flex flex-col gap-2.5 max-w-5xl mx-auto w-full">
+      {days.map((d) => {
+        const dayKey = keyForDay(d)
+        const dayTasks = tasks
+          .filter((t) => t.scope === 'day' && t.bucketKey === dayKey)
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+        return (
+          <div key={d.toISOString()} className="group flex items-stretch gap-4">
+            {/* Square: Dynamic Flame Card — vertically centered */}
+            <TaskFlameCard
+              date={d}
+              dayTasks={dayTasks}
+              onClickCell={onPickDay}
+            />
+
+            {/* Rectangle: Task list card — takes remaining width */}
+            <div className="flex-1 min-w-0">
+              <DayCell
+                date={d}
+                tasks={tasks}
+                onOpen={onOpen}
+                onCycleColor={onCycleColor}
+                onClickCell={onPickDay}
+                size="week"
+              />
+            </div>
+            
+            {/* New Summary Card: takes remaining width equally */}
+            <div className="flex-1 min-w-0">
+              <DaySummaryCard date={d} dayTasks={dayTasks} />
+            </div>
           </div>
-          <DayCell
-            date={d}
-            tasks={tasks}
-            onOpen={onOpen}
-            onCycleColor={onCycleColor}
-            onClickCell={onPickDay}
-            size="lg"
-          />
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

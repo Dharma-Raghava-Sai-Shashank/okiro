@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -19,24 +19,27 @@ import WeekView from './components/WeekView'
 import DayView from './components/DayView'
 import TaskChip from './components/TaskChip'
 import TaskDetailModal from './components/TaskDetailModal'
-import { useTasks } from './hooks/useTasks'
 import UsernameModal from './components/UsernameModal'
+import { useTasks } from './hooks/useTasks'
 import { stepAnchor, todayKey } from './lib/dates'
 
 export default function App() {
-  const [username, setUsername] = useState(() => {
-    return localStorage.getItem('okiro_username') || ''
-  })
-  const [showUsernameModal, setShowUsernameModal] = useState(() => {
-    return !localStorage.getItem('okiro_username')
-  })
+  const [username, setUsername] = useState(
+    () => localStorage.getItem('okiro_username') || ''
+  )
+  const [showUsernameModal, setShowUsernameModal] = useState(!username)
+
+  const handleSaveUsername = useCallback((name) => {
+    localStorage.setItem('okiro_username', name)
+    setUsername(name)
+    setShowUsernameModal(false)
+    window.location.reload()
+  }, [])
 
   const {
     tasks,
     loading,
-    refreshing,
     error,
-    refresh,
     addTask,
     updateTask,
     moveTask,
@@ -47,28 +50,25 @@ export default function App() {
     removeSubtask,
   } = useTasks(username)
 
-  const handleSaveUsername = (newUsername) => {
-    localStorage.setItem('okiro_username', newUsername)
-    setUsername(newUsername)
-    setShowUsernameModal(false)
-  }
-
   const [scope, setScope] = useState('month')
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()))
   const [activeChip, setActiveChip] = useState(null)
   const [openTaskId, setOpenTaskId] = useState(null)
   const [openContextDate, setOpenContextDate] = useState(null)
-  const [yearMode, setYearMode] = useState('cards')
-  const [activeInboxTab, setActiveInboxTab] = useState('Present')
 
-  const isYearCalendar = scope === 'year' && yearMode === 'calendar'
+  const isYearCalendar = scope === 'year'
 
   useEffect(() => {
-    // Single deferred resize instead of continuous 650ms loop
-    const timer = setTimeout(() => {
+    const start = performance.now()
+    let rafId
+    const tick = () => {
       window.dispatchEvent(new Event('resize'))
-    }, 100)
-    return () => clearTimeout(timer)
+      if (performance.now() - start < 650) {
+        rafId = requestAnimationFrame(tick)
+      }
+    }
+    rafId = requestAnimationFrame(tick)
+    return () => rafId && cancelAnimationFrame(rafId)
   }, [isYearCalendar])
 
   const sensors = useSensors(
@@ -123,13 +123,9 @@ export default function App() {
       removeTask(taskId)
       return
     }
-    if (target.type === 'inbox-tab') {
-      moveTask(taskId, 'inbox', target.tab, Date.now())
-      return
-    }
     if (target.type === 'inbox') {
       if (sourceTask.scope === 'day') {
-        moveTask(taskId, 'inbox', activeInboxTab, Date.now())
+        moveTask(taskId, 'inbox', '', Date.now())
       }
       return
     }
@@ -162,8 +158,6 @@ export default function App() {
             tasks={tasks}
             onPickMonth={handlePickMonth}
             onPickDay={handlePickDay}
-            mode={yearMode}
-            onModeChange={setYearMode}
           />
         )
       case 'month':
@@ -230,8 +224,7 @@ export default function App() {
               onAdd={addTask}
               onOpen={handleOpen}
               onCycleColor={handleCycleColor}
-              activeTab={activeInboxTab}
-              onTabChange={setActiveInboxTab}
+              onClickUsername={() => setShowUsernameModal(true)}
             />
           </div>
 
@@ -242,10 +235,6 @@ export default function App() {
               onScope={handleScope}
               onStep={handleStep}
               onToday={handleToday}
-              refreshing={refreshing}
-              onRefresh={refresh}
-              username={username || 'okiro'}
-              onPromptUsername={() => setShowUsernameModal(true)}
             />
             {error && (
               <motion.div

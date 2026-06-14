@@ -1,4 +1,6 @@
 import { useDraggable } from '@dnd-kit/core'
+import { useState, useRef } from 'react'
+import TaskPreviewPortal from './TaskPreviewPortal'
 import { motion } from 'framer-motion'
 import {
   chipGlow,
@@ -23,10 +25,30 @@ export default function TaskChip({
     disabled: disableDrag,
   })
 
+  const [showPreview, setShowPreview] = useState(false)
+  const [anchorRect, setAnchorRect] = useState(null)
+  const hoverTimeout = useRef(null)
+
+  const handleMouseEnter = (e) => {
+    if (isDragging) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    hoverTimeout.current = setTimeout(() => {
+      setAnchorRect(rect)
+      setShowPreview(true)
+    }, 250)
+  }
+
+  const handleMouseLeave = () => {
+    if (hoverTimeout.current) clearTimeout(hoverTimeout.current)
+    setShowPreview(false)
+  }
+
   const baseTint = task.color || '#ede9fe'
   const deep = deepFor(baseTint)
-  const gradient = chipGradient(baseTint)
-  const glow = chipGlow(baseTint, task.done ? 0.55 : 0.32)
+  
+  // Punchy glassmorphic styling
+  const gradient = `linear-gradient(135deg, ${baseTint}f2 0%, ${deep}40 100%)`
+  const glow = `0 4px 12px -2px ${deep}50, inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 ${deep}20`
 
   const heights = {
     xs: 'py-1 text-[11px]',
@@ -47,10 +69,13 @@ export default function TaskChip({
   }
 
   return (
-    <motion.div
-      ref={setNodeRef}
-      onClick={handleClick}
-      className={`group relative cursor-pointer select-none rounded-full border border-white/70 ${padding[size]} ${heights[size]} ${
+    <>
+      <motion.div
+        ref={setNodeRef}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      className={`glass-shimmer group relative cursor-pointer select-none rounded-full overflow-hidden ${padding[size]} ${heights[size]} ${
         isDragging ? 'opacity-30' : ''
       }`}
       style={{
@@ -59,8 +84,13 @@ export default function TaskChip({
         color: '#0f172a',
         position: 'relative',
         zIndex: 26,
+        backdropFilter: 'blur(8px)',
+        border: `1px solid ${deep}44`,
       }}
-      whileHover={{ y: -2, scale: 1.02 }}
+      whileHover={{ 
+        boxShadow: `0 4px 12px -2px ${deep}60, inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 ${deep}30`, 
+        filter: 'brightness(1.05)'
+      }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 400, damping: 28 }}
       {...attributes}
@@ -73,20 +103,17 @@ export default function TaskChip({
           onPointerDown={(e) => e.stopPropagation()}
           className="size-2.5 rounded-full border border-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] shrink-0 transition hover:scale-125"
           style={{ background: deep }}
-          title="Cycle color"
         />
         {task.done && (
           <span
             className="shrink-0 grid place-items-center"
             aria-label="Done"
-            title="Done"
           >
             <Logo size={size === 'md' ? 16 : 14} />
           </span>
         )}
         <span
           className="truncate font-medium tracking-tight"
-          title={task.title}
           style={{ color: task.done ? 'rgba(15, 23, 42, 0.65)' : '#0f172a' }}
         >
           {task.title}
@@ -103,6 +130,12 @@ export default function TaskChip({
           />
         </div>
       )}
-    </motion.div>
+      </motion.div>
+      <TaskPreviewPortal 
+        task={task} 
+        anchorRect={anchorRect} 
+        isVisible={showPreview && !isDragging} 
+      />
+    </>
   )
 }

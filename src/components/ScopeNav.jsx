@@ -1,5 +1,3 @@
-import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
 import {
   format,
   startOfWeek,
@@ -52,94 +50,40 @@ function anchorLabel(scope, anchor) {
   }
 }
 
-export default function ScopeNav({
-  scope,
-  anchor,
-  onScope,
-  onStep,
-  onToday,
-  refreshing = false,
-  onRefresh,
-  username = 'okiro',
-  onPromptUsername,
-}) {
+export default function ScopeNav({ scope, anchor, onScope, onStep, onToday, animatedLogo = false }) {
   const crumbs = buildBreadcrumb(scope, anchor)
-  const [showSuccess, setShowSuccess] = useState(false)
-  const prevRefreshing = useRef(refreshing)
-
-  useEffect(() => {
-    if (prevRefreshing.current && !refreshing) {
-      setShowSuccess(true)
-      const timer = setTimeout(() => setShowSuccess(false), 1200)
-      return () => clearTimeout(timer)
-    }
-    prevRefreshing.current = refreshing
-  }, [refreshing])
-
   return (
     <div className="sticky top-2 z-40 pb-3">
       <div
         className="relative rounded-2xl border border-white/80 px-4 py-3 flex flex-col gap-3"
         style={{
           background:
-            'linear-gradient(170deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0.78) 100%)',
+            'linear-gradient(170deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.72) 50%, rgba(255,255,255,0.6) 100%)',
+          backdropFilter: 'blur(32px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(32px) saturate(180%)',
           boxShadow:
-            '0 14px 44px -14px rgba(30, 64, 175, 0.30), 0 4px 12px -6px rgba(96, 165, 250, 0.22), inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(15, 23, 42, 0.06)',
+            '0 14px 44px -14px rgba(30, 64, 175, 0.30), 0 4px 12px -6px rgba(96, 165, 250, 0.22), inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(15, 23, 42, 0.06), inset 0 22px 38px -28px rgba(255, 255, 255, 0.9)',
         }}
       >
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2.5">
-              <button
-                onClick={onRefresh}
-                disabled={refreshing}
-                title="Sync tracker data"
-                className="group relative size-9 rounded-xl grid place-items-center shadow-md border border-white/85 cursor-pointer overflow-hidden transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none hover:shadow-lg disabled:cursor-not-allowed"
+              <div
+                className="size-9 rounded-xl grid place-items-center shadow-md border border-white/80"
                 style={{
                   background:
-                    'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(219,234,254,0.9) 100%)',
+                    'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(219,234,254,0.85) 100%)',
                 }}
               >
-                {/* Rotating energy border on refresh */}
-                {refreshing && (
-                  <motion.div
-                    className="absolute inset-0 rounded-xl"
-                    style={{
-                      border: '2px solid transparent',
-                      borderTopColor: '#3b82f6',
-                      borderRightColor: '#60a5fa',
-                      borderBottomColor: '#93c5fd',
-                    }}
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
-                  />
-                )}
-                
-                {/* Success flash particle / ripple */}
-                {showSuccess && (
-                  <motion.div
-                    className="absolute inset-0 bg-emerald-400/20 rounded-xl"
-                    initial={{ scale: 0, opacity: 1 }}
-                    animate={{ scale: 2.2, opacity: 0 }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                  />
-                )}
-
-                <div className={`size-full relative flex items-center justify-center transition-transform duration-300 ${refreshing ? 'scale-105' : 'group-hover:scale-110'}`}>
-                  <LogoFlame idSuffix="nav" refreshing={refreshing} />
-                </div>
-              </button>
+                {animatedLogo ? <LogoFlame /> : <Logo size={22} />}
+              </div>
               <div className="leading-tight">
                 <div className="text-[16px] font-bold tracking-tight text-slate-900">
                   Okiro
                 </div>
-                <button
-                  onClick={onPromptUsername}
-                  className="text-[10px] uppercase tracking-widest text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 cursor-pointer transition select-none bg-indigo-50/70 hover:bg-indigo-100/80 px-1.5 py-0.5 rounded-lg border border-indigo-100/50"
-                  title="Click to switch user"
-                >
-                  👤 {username}
-                </button>
+                <div className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
+                  rise · log · done
+                </div>
               </div>
             </div>
 
