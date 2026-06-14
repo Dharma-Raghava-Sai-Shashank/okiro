@@ -165,7 +165,8 @@ function useGlobalsAnchor() {
       const rect = node.getBoundingClientRect()
       if (rect.width === 0 && rect.height === 0) return
       const targetX = rect.left + rect.width / 2
-      const targetY = rect.top + rect.height / 2
+      // Position inside the inbox, clearly visible above the trash zone
+      const targetY = rect.bottom - 160
       const vpCenterX = window.innerWidth / 2
       const vpCenterY = window.innerHeight / 2
       setDelta({
