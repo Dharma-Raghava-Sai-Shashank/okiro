@@ -144,6 +144,7 @@ export default function DayCell({
       className={`group relative flex flex-col rounded-2xl border cursor-pointer transition-all overflow-hidden ${sizing} ${dimmed} ${
         today ? 'today-ring' : ''
       } ${isOver ? 'ring-4 ring-blue-300/70' : ''}`}
+      data-today={today ? 'true' : undefined}
       style={{
         background: baseBg,
         border: cardBorder,

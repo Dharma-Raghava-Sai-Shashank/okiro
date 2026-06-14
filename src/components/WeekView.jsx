@@ -1,7 +1,7 @@
 import DayCell from './DayCell'
 import TaskFlameCard from './TaskFlameCard'
 import DaySummaryCard from './DaySummaryCard'
-import { daysOfWeek, keyForDay } from '../lib/dates'
+import { daysOfWeek, keyForDay, isToday } from '../lib/dates'
 
 export default function WeekView({
   anchor,
@@ -16,12 +16,13 @@ export default function WeekView({
     <div className="flex flex-col gap-2.5 max-w-5xl mx-auto w-full">
       {days.map((d) => {
         const dayKey = keyForDay(d)
+        const today = isToday(d)
         const dayTasks = tasks
           .filter((t) => t.scope === 'day' && t.bucketKey === dayKey)
           .sort((a, b) => (a.order || 0) - (b.order || 0))
 
         return (
-          <div key={d.toISOString()} className="group flex items-stretch gap-4">
+          <div key={d.toISOString()} className="group flex items-stretch gap-4" data-today={today ? 'true' : undefined}>
             {/* Square: Dynamic Flame Card — vertically centered */}
             <TaskFlameCard
               date={d}

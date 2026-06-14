@@ -48,6 +48,7 @@ function MiniDayCell({ date, monthDate, dayTasks, onPickDay }) {
       aria-label={`${format(date, 'EEE d MMM yyyy')}, ${dayTasks.length} ${
         dayTasks.length === 1 ? 'task' : 'tasks'
       }`}
+      data-today={today ? 'true' : undefined}
     >
       {/* Day number — small, top-left corner */}
       <span

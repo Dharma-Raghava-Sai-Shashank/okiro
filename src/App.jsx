@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -55,6 +55,8 @@ export default function App() {
   const [activeChip, setActiveChip] = useState(null)
   const [openTaskId, setOpenTaskId] = useState(null)
   const [openContextDate, setOpenContextDate] = useState(null)
+  const [activeTab, setActiveTab] = useState('Present')
+  const scrollRef = useRef(null)
 
   const isYearCalendar = scope === 'year'
 
@@ -83,6 +85,17 @@ export default function App() {
   const handleScope = (s) => setScope(s)
   const handleStep = (delta) => setAnchor((a) => stepAnchor(scope, a, delta))
   const handleToday = () => setAnchor(startOfDay(new Date()))
+
+  // Auto-scroll to today element when scope or anchor changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const todayEl = scrollRef.current?.querySelector('[data-today="true"]')
+      if (todayEl) {
+        todayEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [scope, anchor])
 
   const handlePickMonth = (m) => {
     setAnchor(startOfMonth(m))
@@ -125,8 +138,13 @@ export default function App() {
     }
     if (target.type === 'inbox') {
       if (sourceTask.scope === 'day') {
-        moveTask(taskId, 'inbox', '', Date.now())
+        moveTask(taskId, 'inbox', activeTab, Date.now())
       }
+      return
+    }
+    if (target.type === 'inbox-tab' && target.tab) {
+      moveTask(taskId, 'inbox', target.tab, Date.now())
+      setActiveTab(target.tab)
       return
     }
     if (target.type === 'day' && target.bucketKey) {
@@ -225,10 +243,12 @@ export default function App() {
               onOpen={handleOpen}
               onCycleColor={handleCycleColor}
               onClickUsername={() => setShowUsernameModal(true)}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
             />
           </div>
 
-          <div className="flex flex-col gap-4 min-h-0 lg:overflow-y-auto pr-1">
+          <div ref={scrollRef} className="flex flex-col gap-4 min-h-0 lg:overflow-y-auto pr-1">
             <ScopeNav
               scope={scope}
               anchor={anchor}
