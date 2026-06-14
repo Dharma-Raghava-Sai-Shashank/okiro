@@ -215,6 +215,21 @@ export default function App() {
     }
   }
 
+  // New user — show only the welcome modal on a clean background
+  if (!username) {
+    return (
+      <>
+        <AuroraBackground />
+        <UsernameModal
+          isOpen={showUsernameModal}
+          currentUsername={username}
+          onSave={handleSaveUsername}
+          onClose={() => setShowUsernameModal(false)}
+        />
+      </>
+    )
+  }
+
   return (
     <DndContext
       sensors={sensors}
