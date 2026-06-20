@@ -58,7 +58,7 @@ export default function DayCell({
     md: "aspect-square p-2", // Keep the neat square for month view
     week: "min-h-[6rem] p-3",
     lg: "min-h-[7.5rem] p-3",
-    xl: "min-h-[12rem] p-3",
+    xl: "min-h-[12rem] h-full p-3",
   }[size];
 
   // If there are tasks, infuse the card background with the primary task's color

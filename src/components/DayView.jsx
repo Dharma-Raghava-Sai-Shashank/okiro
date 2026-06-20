@@ -206,7 +206,7 @@ export default function DayView({
       {/* Row 1: Task list + Progress ring side by side */}
       <div className="flex gap-10 items-stretch">
         {/* Task list — half the container width */}
-        <div className="w-1/2 min-w-0 shrink-0">
+        <div className="w-1/2 min-w-0 shrink-0 flex flex-col">
           <DayCell
             date={anchor}
             tasks={tasks}
