@@ -1,74 +1,212 @@
-import { useState } from 'react'
-import DayCell from './DayCell'
-import Glass from './Glass'
-import { keyForDay, labelDayLong, labelWeekShort } from '../lib/dates'
-import { isToday } from '../lib/dates'
-import { format } from 'date-fns'
+import { useState } from "react";
+import DayCell from "./DayCell";
+import DaySummaryCard from "./DaySummaryCard";
+import Logo from "./Logo";
+import { motion } from "framer-motion";
+import { deepFor, midFor } from "../lib/colors";
+import { keyForDay, labelWeekShort } from "../lib/dates";
+import { isToday } from "../lib/dates";
+import { format } from "date-fns";
 
 export default function DayView({
   anchor,
   tasks,
   onOpen,
   onCycleColor,
-  onToggleSubtask,
-  onAddSubtask,
-  onRemoveSubtask,
+  onAddTask,
 }) {
-  const dayKey = keyForDay(anchor)
-  const today = isToday(anchor)
+  const dayKey = keyForDay(anchor);
+  const today = isToday(anchor);
 
-  const rollup = []
+  const rollup = [];
   for (const task of tasks) {
     for (const sub of task.subtasks || []) {
-      if (sub.date === dayKey) {
-        rollup.push({ task, sub })
-      }
+      if (sub.date === dayKey) rollup.push({ task, sub });
     }
   }
 
-  const [pickTaskId, setPickTaskId] = useState('')
-  const [draftSub, setDraftSub] = useState('')
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [quickTitle, setQuickTitle] = useState("");
 
-  const eligibleTasks = tasks.filter((t) => t.scope === 'day' || t.scope === 'inbox')
+  const dayTasks = tasks
+    .filter((t) => t.scope === "day" && t.bucketKey === dayKey)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-  const submit = (e) => {
-    e.preventDefault()
-    if (!pickTaskId || !draftSub.trim()) return
-    onAddSubtask(pickTaskId, draftSub.trim(), dayKey)
-    setDraftSub('')
-  }
+  const handleQuickAdd = async () => {
+    const title = quickTitle.trim();
+    if (!title) return;
+    if (onAddTask) await onAddTask(title, { scope: "day", bucketKey: dayKey });
+    setQuickTitle("");
+    setShowQuickAdd(false);
+  };
+
+  // Progress ring arcs
+  const progressData = (() => {
+    const trackArcs = [];
+    const arcs = [];
+    const markers = [];
+    if (!dayTasks || dayTasks.length === 0) return { trackArcs, arcs, markers };
+
+    const GAP = dayTasks.length > 1 ? 3 : 0;
+    let acc = 0;
+
+    dayTasks.forEach((task) => {
+      const segmentSize = 360 / dayTasks.length;
+      const taskSubs = (task.subtasks || []).filter((s) => s.date === dayKey);
+      const completedSubs = taskSubs.filter((s) => s.done).length;
+      const taskProgress =
+        taskSubs.length > 0
+          ? (completedSubs / taskSubs.length) * 100
+          : task.done ? 100 : 0;
+
+      const tint = task.color || "#ede9fe";
+      const deep = deepFor(tint);
+      const startAngle = acc + GAP / 2;
+      const endAngle = acc + segmentSize - GAP / 2;
+      const segLen = endAngle - startAngle;
+
+      const tsRad = ((startAngle - 90) * Math.PI) / 180;
+      const teRad = ((endAngle - 90) * Math.PI) / 180;
+      const tx1 = 80 + 70 * Math.cos(tsRad);
+      const ty1 = 80 + 70 * Math.sin(tsRad);
+      const tx2 = 80 + 70 * Math.cos(teRad);
+      const ty2 = 80 + 70 * Math.sin(teRad);
+      trackArcs.push(
+        <path
+          key={`track-${task._id}`}
+          d={`M ${tx1} ${ty1} A 70 70 0 ${segLen > 180 ? 1 : 0} 1 ${tx2} ${ty2}`}
+          fill="none"
+          stroke={tint}
+          strokeWidth="7"
+          strokeLinecap="round"
+          opacity="0.4"
+        />,
+      );
+
+      const filledSegment = (segLen * taskProgress) / 100;
+      if (filledSegment > 0.5) {
+        const psRad = ((startAngle - 90) * Math.PI) / 180;
+        const peRad = ((startAngle + filledSegment - 90) * Math.PI) / 180;
+        const x1 = 80 + 70 * Math.cos(psRad);
+        const y1 = 80 + 70 * Math.sin(psRad);
+        const x2 = 80 + 70 * Math.cos(peRad);
+        const y2 = 80 + 70 * Math.sin(peRad);
+        arcs.push(
+          <path
+            key={`arc-${task._id}`}
+            d={`M ${x1} ${y1} A 70 70 0 ${filledSegment > 180 ? 1 : 0} 1 ${x2} ${y2}`}
+            fill="none"
+            stroke={midFor(tint)}
+            strokeWidth="7"
+            strokeLinecap="round"
+            opacity="0.95"
+          />,
+        );
+
+        const midAngle = startAngle + filledSegment / 2;
+        const midRad = ((midAngle - 90) * Math.PI) / 180;
+        const mx = 80 + 70 * Math.cos(midRad);
+        const my = 80 + 70 * Math.sin(midRad);
+        markers.push({ id: task._id, left: (mx / 160) * 100, top: (my / 160) * 100, tint, deep });
+      }
+
+      acc += segmentSize;
+    });
+    return { trackArcs, arcs, markers };
+  })();
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Date header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-2xl font-semibold tracking-tight text-slate-900">
-            {format(anchor, 'EEEE d MMMM yyyy')}
+      {/* Header */}
+      <div className="rounded-2xl border border-white/60 p-4 bg-white/60">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-2xl font-semibold tracking-tight text-slate-900">
+              {format(anchor, "EEEE d MMMM yyyy")}
+            </div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              {labelWeekShort(anchor)}{" "}
+              {today && (
+                <span
+                  className="ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white"
+                  style={{
+                    background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
+                    boxShadow: "0 4px 10px -2px rgba(59,130,246,0.4), inset 0 1px 0 rgba(255,255,255,0.55)",
+                  }}
+                >
+                  Today
+                </span>
+              )}
+            </div>
           </div>
-          <div className="text-xs text-slate-500 mt-0.5">
-            {labelWeekShort(anchor)}
-            {today && (
-              <span
-                className="ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white"
-                style={{
-                  background:
-                    'linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)',
-                  boxShadow:
-                    '0 4px 10px -2px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.55)',
-                }}
-              >
-                Today
-              </span>
-            )}
+          <div className="flex items-center gap-4">
+            <div className="flex gap-3 text-sm">
+              <div className="text-slate-600">
+                Tasks: <span className="font-bold text-slate-900">{dayTasks.length}</span>
+              </div>
+              <div className="text-slate-600">
+                Subtasks: <span className="font-bold text-slate-900">{rollup.length}</span>
+              </div>
+              <div className="text-slate-600">
+                Done: <span className="font-bold text-emerald-600">{dayTasks.filter((t) => t.done).length}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowQuickAdd((s) => !s)}
+              className="text-sm font-semibold px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-400 to-indigo-500 text-white shadow-sm hover:scale-105 transition"
+            >
+              {showQuickAdd ? "✕ Close" : "+ New"}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* 2-column layout: Task card (left) + Subtasks (right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
-        {/* Left: Day task card — compact, squarish */}
-        <div className="w-full max-w-xl">
+      {/* Quick Add */}
+      {showQuickAdd && (
+        <div
+          className="rounded-2xl border border-white/60 p-5"
+          style={{
+            background: "linear-gradient(170deg, rgba(255,255,255,0.97) 0%, rgba(250,252,255,0.95) 50%, rgba(255,255,255,0.92) 100%)",
+          }}
+        >
+          <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <span className="text-lg">✨</span> Add New Task
+          </h3>
+          <div className="flex flex-col gap-2">
+            <input
+              value={quickTitle}
+              onChange={(e) => setQuickTitle(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
+              placeholder="What do you want to accomplish today?"
+              className="w-full text-sm px-3 py-2 bg-white/50 border border-white/60 rounded-xl placeholder:text-slate-400 focus:bg-white/70 focus:outline-none transition"
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleQuickAdd}
+                disabled={!quickTitle.trim()}
+                className="flex-1 text-sm font-bold px-4 py-2 text-white rounded-xl bg-gradient-to-r from-green-400 to-emerald-500 disabled:opacity-50 hover:scale-105 transition"
+              >
+                Create
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowQuickAdd(false)}
+                className="text-sm px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-xl transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Row 1: Task list + Progress ring side by side */}
+      <div className="flex gap-10 items-stretch">
+        {/* Task list — half the container width */}
+        <div className="w-1/2 min-w-0 shrink-0">
           <DayCell
             date={anchor}
             tasks={tasks}
@@ -79,114 +217,81 @@ export default function DayView({
           />
         </div>
 
-        {/* Right: Subtasks panel */}
-        <Glass variant="panel" className="p-5 flex flex-col gap-4">
-          <div className="flex items-baseline justify-between">
-            <h3 className="text-sm font-semibold tracking-tight text-slate-700">
-              Subtasks for this day
-            </h3>
-            <span
-              className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-              style={{
-                background: rollup.length > 0
-                  ? 'linear-gradient(135deg, #e0e7ff, #c7d2fe)'
-                  : 'rgba(15, 23, 42, 0.06)',
-                color: rollup.length > 0 ? '#4338ca' : '#94a3b8',
-              }}
-            >
-              {rollup.length}
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            {rollup.length === 0 && (
-              <div
-                className="text-[12px] text-slate-400 italic px-3 py-5 text-center rounded-xl"
-                style={{
-                  background: 'rgba(15, 23, 42, 0.03)',
-                  border: '1.5px dashed rgba(15, 23, 42, 0.1)',
-                }}
-              >
-                No subtasks logged for this day yet.
-              </div>
-            )}
-            {rollup.map(({ task, sub }) => (
-              <div
-                key={`${task._id}-${sub.id}`}
-                className="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/40 border border-white/50 hover:bg-white/60 transition"
-                style={{
-                  borderLeft: `3px solid ${task.color || '#ede9fe'}`,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={!!sub.done}
-                  onChange={() => onToggleSubtask(task._id, sub.id)}
-                  className="size-4 accent-violet-500 rounded"
-                />
-                <span
-                  className="size-2.5 rounded-full shrink-0"
-                  style={{ background: task.color }}
-                  aria-hidden
-                />
-                <span className="text-[11px] text-slate-500 truncate max-w-[8rem] font-medium">
-                  {task.title}
-                </span>
-                <span className="text-slate-300 text-[11px]">·</span>
-                <span
-                  className={`text-sm flex-1 truncate ${
-                    sub.done ? 'text-slate-400' : 'text-slate-800'
-                  }`}
-                >
-                  {sub.title}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onRemoveSubtask(task._id, sub.id)}
-                  className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 text-sm transition"
-                  aria-label="Remove"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <form
-            onSubmit={submit}
-            className="flex gap-2 pt-3 border-t border-white/40"
+        {/* Progress ring — square card */}
+        {dayTasks.length > 0 && (
+          <div
+            className="flex-1 min-w-0 rounded-2xl p-3 flex flex-col items-center justify-center overflow-hidden"
+            style={{
+              background: "rgba(255,255,255,0.72)",
+              border: "1px solid rgba(255,255,255,0.7)",
+              boxShadow: "0 4px 20px -8px rgba(99,102,241,0.10), 0 1px 6px -2px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.95)",
+            }}
           >
-            <select
-              value={pickTaskId}
-              onChange={(e) => setPickTaskId(e.target.value)}
-              className="text-xs px-2.5 py-2 bg-white/50 border border-white/60 rounded-xl focus:bg-white/70 focus:outline-none max-w-[10rem] truncate"
-            >
-              <option value="">Pick a task…</option>
-              {eligibleTasks.map((t) => (
-                <option key={t._id} value={t._id}>
-                  {t.title}
-                </option>
-              ))}
-            </select>
-            <input
-              value={draftSub}
-              onChange={(e) => setDraftSub(e.target.value)}
-              placeholder="+ subtask for this day"
-              className="flex-1 text-xs px-3 py-2 bg-white/50 border border-white/60 rounded-xl placeholder:text-slate-500 focus:bg-white/70 focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={!pickTaskId || !draftSub.trim()}
-              className="text-xs font-bold px-4 py-2 text-white rounded-xl disabled:opacity-40 hover:scale-105 transition shadow-md"
-              style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
-              }}
-            >
-              Add
-            </button>
-          </form>
-        </Glass>
+            <div className="flex items-center gap-1.5 mb-3">
+              <Logo
+                size={16}
+                tint={dayTasks[0]?.color || "#ede9fe"}
+                deep={deepFor(dayTasks[0]?.color || "#ede9fe")}
+              />
+              <h3 className="text-sm font-semibold text-slate-500 tracking-tight">
+                Daily Progress
+              </h3>
+            </div>
+
+            <div className="relative w-44 h-44 mb-3">
+              <svg viewBox="0 0 160 160" className="w-full h-full transform -rotate-90">
+                {progressData.trackArcs}
+                {progressData.arcs}
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Logo
+                    size={44}
+                    tint={dayTasks[0]?.color || "#ede9fe"}
+                    deep={deepFor(dayTasks[0]?.color || "#ede9fe")}
+                  />
+                </motion.div>
+                <div className="text-2xl font-bold text-slate-800 tabular-nums -mt-1">
+                  {Math.round((dayTasks.filter((t) => t.done).length / dayTasks.length) * 100)}%
+                </div>
+                <div className="text-xs text-slate-400 font-medium">
+                  {dayTasks.filter((t) => t.done).length}/{dayTasks.length}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 justify-center">
+              {dayTasks.slice(0, 10).map((task) => {
+                const tint = task.color || "#ede9fe";
+                const deep = deepFor(tint);
+                return (
+                  <div
+                    key={`leg-${task._id}`}
+                    title={task.title}
+                    className="flex items-center justify-center w-9 h-9 rounded-full"
+                    style={{ background: `${tint}60`, border: `1px solid ${tint}` }}
+                  >
+                    <Logo size={18} tint={tint} deep={deep} />
+                  </div>
+                );
+              })}
+              {dayTasks.length > 10 && (
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-slate-400 bg-white/60 border border-slate-200">
+                  +{dayTasks.length - 10}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Row 2: Summary — more inset, visually centered */}
+      <div className="px-20">
+        <DaySummaryCard date={anchor} dayTasks={dayTasks} />
       </div>
     </div>
-  )
+  );
 }

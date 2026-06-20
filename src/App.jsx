@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -6,35 +6,35 @@ import {
   useSensor,
   useSensors,
   closestCenter,
-} from '@dnd-kit/core'
-import { motion } from 'framer-motion'
-import { startOfDay, startOfMonth } from 'date-fns'
-import AuroraBackground from './components/AuroraBackground'
-import FlameBackground from './components/FlameBackground'
-import Inbox from './components/Inbox'
-import ScopeNav from './components/ScopeNav'
-import YearView from './components/YearView'
-import MonthView from './components/MonthView'
-import WeekView from './components/WeekView'
-import DayView from './components/DayView'
-import TaskChip from './components/TaskChip'
-import TaskDetailModal from './components/TaskDetailModal'
-import UsernameModal from './components/UsernameModal'
-import { useTasks } from './hooks/useTasks'
-import { stepAnchor, todayKey } from './lib/dates'
+} from "@dnd-kit/core";
+import { motion } from "framer-motion";
+import { startOfDay, startOfMonth } from "date-fns";
+import AuroraBackground from "./components/AuroraBackground";
+import FlameBackground from "./components/FlameBackground";
+import Inbox from "./components/Inbox";
+import ScopeNav from "./components/ScopeNav";
+import YearView from "./components/YearView";
+import MonthView from "./components/MonthView";
+import WeekView from "./components/WeekView";
+import DayView from "./components/DayView";
+import TaskChip from "./components/TaskChip";
+import TaskDetailModal from "./components/TaskDetailModal";
+import UsernameModal from "./components/UsernameModal";
+import { useTasks } from "./hooks/useTasks";
+import { stepAnchor, todayKey } from "./lib/dates";
 
 export default function App() {
   const [username, setUsername] = useState(
-    () => localStorage.getItem('okiro_username') || ''
-  )
-  const [showUsernameModal, setShowUsernameModal] = useState(!username)
+    () => localStorage.getItem("okiro_username") || "",
+  );
+  const [showUsernameModal, setShowUsernameModal] = useState(!username);
 
   const handleSaveUsername = useCallback((name) => {
-    localStorage.setItem('okiro_username', name)
-    setUsername(name)
-    setShowUsernameModal(false)
-    window.location.reload()
-  }, [])
+    localStorage.setItem("okiro_username", name);
+    setUsername(name);
+    setShowUsernameModal(false);
+    window.location.reload();
+  }, []);
 
   const {
     tasks,
@@ -48,117 +48,117 @@ export default function App() {
     toggleSubtask,
     editSubtask,
     removeSubtask,
-  } = useTasks(username)
+  } = useTasks(username);
 
-  const [scope, setScope] = useState('month')
-  const [anchor, setAnchor] = useState(() => startOfDay(new Date()))
-  const [activeChip, setActiveChip] = useState(null)
-  const [openTaskId, setOpenTaskId] = useState(null)
-  const [openContextDate, setOpenContextDate] = useState(null)
-  const [activeTab, setActiveTab] = useState('Present')
-  const scrollRef = useRef(null)
+  const [scope, setScope] = useState("month");
+  const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
+  const [activeChip, setActiveChip] = useState(null);
+  const [openTaskId, setOpenTaskId] = useState(null);
+  const [openContextDate, setOpenContextDate] = useState(null);
+  const [activeTab, setActiveTab] = useState("Present");
+  const scrollRef = useRef(null);
 
-  const isYearCalendar = scope === 'year'
+  const isYearCalendar = scope === "year";
 
   useEffect(() => {
-    const start = performance.now()
-    let rafId
+    const start = performance.now();
+    let rafId;
     const tick = () => {
-      window.dispatchEvent(new Event('resize'))
+      window.dispatchEvent(new Event("resize"));
       if (performance.now() - start < 650) {
-        rafId = requestAnimationFrame(tick)
+        rafId = requestAnimationFrame(tick);
       }
-    }
-    rafId = requestAnimationFrame(tick)
-    return () => rafId && cancelAnimationFrame(rafId)
-  }, [isYearCalendar])
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => rafId && cancelAnimationFrame(rafId);
+  }, [isYearCalendar]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  )
+  );
 
   const openTask = useMemo(
     () => tasks.find((t) => t._id === openTaskId) || null,
     [tasks, openTaskId],
-  )
+  );
 
-  const handleScope = (s) => setScope(s)
-  const handleStep = (delta) => setAnchor((a) => stepAnchor(scope, a, delta))
-  const handleToday = () => setAnchor(startOfDay(new Date()))
+  const handleScope = (s) => setScope(s);
+  const handleStep = (delta) => setAnchor((a) => stepAnchor(scope, a, delta));
+  const handleToday = () => setAnchor(startOfDay(new Date()));
 
   // Auto-scroll to today element when scope or anchor changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      const todayEl = scrollRef.current?.querySelector('[data-today="true"]')
+      const todayEl = scrollRef.current?.querySelector('[data-today="true"]');
       if (todayEl) {
-        todayEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        todayEl.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-    }, 350)
-    return () => clearTimeout(timer)
-  }, [scope, anchor])
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [scope, anchor]);
 
   const handlePickMonth = (m) => {
-    setAnchor(startOfMonth(m))
-    setScope('month')
-  }
+    setAnchor(startOfMonth(m));
+    setScope("month");
+  };
   const handlePickDay = (d) => {
-    setAnchor(d)
-    setScope('day')
-  }
+    setAnchor(d);
+    setScope("day");
+  };
 
   const handleOpen = (task, fromBucketKey) => {
-    setOpenTaskId(task._id)
-    setOpenContextDate(fromBucketKey || todayKey())
-  }
+    setOpenTaskId(task._id);
+    setOpenContextDate(fromBucketKey || todayKey());
+  };
 
   const handleCycleColor = (task, nextC) => {
-    updateTask(task._id, { color: nextC })
-  }
+    updateTask(task._id, { color: nextC });
+  };
 
   const onDragStart = (e) => {
-    const taskId = e.active.data.current?.taskId
-    const t = tasks.find((x) => x._id === taskId)
-    if (t) setActiveChip(t)
-  }
+    const taskId = e.active.data.current?.taskId;
+    const t = tasks.find((x) => x._id === taskId);
+    if (t) setActiveChip(t);
+  };
 
   const onDragEnd = (e) => {
-    setActiveChip(null)
-    const { active, over } = e
-    if (!over) return
-    const taskId = active.data.current?.taskId
-    if (!taskId) return
-    const sourceTask = tasks.find((t) => t._id === taskId)
-    if (!sourceTask) return
-    const target = over.data.current
-    if (!target) return
+    setActiveChip(null);
+    const { active, over } = e;
+    if (!over) return;
+    const taskId = active.data.current?.taskId;
+    if (!taskId) return;
+    const sourceTask = tasks.find((t) => t._id === taskId);
+    if (!sourceTask) return;
+    const target = over.data.current;
+    if (!target) return;
 
-    if (target.type === 'trash') {
-      removeTask(taskId)
-      return
+    if (target.type === "trash") {
+      removeTask(taskId);
+      return;
     }
-    if (target.type === 'inbox') {
-      if (sourceTask.scope === 'day') {
-        moveTask(taskId, 'inbox', activeTab, Date.now())
+    if (target.type === "inbox") {
+      if (sourceTask.scope === "day") {
+        moveTask(taskId, "inbox", activeTab, Date.now());
       }
-      return
+      return;
     }
-    if (target.type === 'inbox-tab' && target.tab) {
-      moveTask(taskId, 'inbox', target.tab, Date.now())
-      setActiveTab(target.tab)
-      return
+    if (target.type === "inbox-tab" && target.tab) {
+      moveTask(taskId, "inbox", target.tab, Date.now());
+      setActiveTab(target.tab);
+      return;
     }
-    if (target.type === 'day' && target.bucketKey) {
-      if (sourceTask.scope === 'inbox') {
+    if (target.type === "day" && target.bucketKey) {
+      if (sourceTask.scope === "inbox") {
         addTask(sourceTask.title, {
-          scope: 'day',
+          scope: "day",
           bucketKey: target.bucketKey,
           color: sourceTask.color,
-        })
+        });
       } else {
-        moveTask(taskId, 'day', target.bucketKey, Date.now())
+        moveTask(taskId, "day", target.bucketKey, Date.now());
       }
     }
-  }
+  };
 
   const renderView = () => {
     if (loading) {
@@ -166,10 +166,10 @@ export default function App() {
         <div className="text-sm text-slate-500 italic px-4 py-12 text-center">
           Loading…
         </div>
-      )
+      );
     }
     switch (scope) {
-      case 'year':
+      case "year":
         return (
           <YearView
             anchor={anchor}
@@ -177,8 +177,8 @@ export default function App() {
             onPickMonth={handlePickMonth}
             onPickDay={handlePickDay}
           />
-        )
-      case 'month':
+        );
+      case "month":
         return (
           <MonthView
             anchor={anchor}
@@ -187,8 +187,8 @@ export default function App() {
             onCycleColor={handleCycleColor}
             onPickDay={handlePickDay}
           />
-        )
-      case 'week':
+        );
+      case "week":
         return (
           <WeekView
             anchor={anchor}
@@ -197,8 +197,8 @@ export default function App() {
             onCycleColor={handleCycleColor}
             onPickDay={handlePickDay}
           />
-        )
-      case 'day':
+        );
+      case "day":
         return (
           <DayView
             anchor={anchor}
@@ -208,12 +208,13 @@ export default function App() {
             onToggleSubtask={toggleSubtask}
             onAddSubtask={addSubtask}
             onRemoveSubtask={removeSubtask}
+            onAddTask={addTask}
           />
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   // New user — show only the welcome modal on a clean background
   if (!username) {
@@ -227,7 +228,7 @@ export default function App() {
           onClose={() => setShowUsernameModal(false)}
         />
       </>
-    )
+    );
   }
 
   return (
@@ -241,14 +242,14 @@ export default function App() {
       <FlameBackground />
       <div
         className={`min-h-screen w-full py-5 transition-[padding] duration-500 ease-out ${
-          isYearCalendar ? 'px-3' : 'px-4 sm:px-6 lg:px-8'
+          isYearCalendar ? "px-3" : "px-4 sm:px-6 lg:px-8"
         }`}
       >
         <div
           className={`mx-auto grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] h-[calc(100vh-2.5rem)] transition-[max-width,gap] duration-500 ease-out ${
             isYearCalendar
-              ? 'max-w-none gap-4 lg:gap-5'
-              : 'max-w-[1500px] gap-5 lg:gap-7'
+              ? "max-w-none gap-4 lg:gap-5"
+              : "max-w-[1500px] gap-5 lg:gap-7"
           }`}
         >
           <div className="min-h-0 lg:h-full">
@@ -263,7 +264,10 @@ export default function App() {
             />
           </div>
 
-          <div ref={scrollRef} className="flex flex-col gap-4 min-h-0 lg:overflow-y-auto pr-1">
+          <div
+            ref={scrollRef}
+            className="flex flex-col gap-4 min-h-0 lg:overflow-y-auto pr-1"
+          >
             <ScopeNav
               scope={scope}
               anchor={anchor}
@@ -322,5 +326,5 @@ export default function App() {
         ) : null}
       </DragOverlay>
     </DndContext>
-  )
+  );
 }

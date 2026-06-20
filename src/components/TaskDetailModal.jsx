@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PALETTE, deepFor, paletteEntry } from '../lib/colors'
-import ProgressBar from './ProgressBar'
 import SubtaskList from './SubtaskList'
 import Logo from './Logo'
 
@@ -41,11 +40,6 @@ export default function TaskDetailModal({
   if (!task) return null
 
   const subtasks = task.subtasks || []
-  const hasSubs = subtasks.length > 0
-  const computedProgress = hasSubs
-    ? Math.round((subtasks.filter((s) => s.done).length / subtasks.length) * 100)
-    : task.progress || 0
-
   const tint = task.color || '#ede9fe'
   const entry = paletteEntry(tint)
   const deep = entry.deep
@@ -193,122 +187,56 @@ export default function TaskDetailModal({
 
             {/* ─── Body content ─── */}
             <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
-              {/* Color picker — pill swatches */}
+
+              {/* 1. Notes — first */}
               <div className="flex flex-col gap-2">
-                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
-                  Color
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {PALETTE.map((p) => {
-                    const active = p.tint === task.color
-                    return (
-                      <motion.button
-                        key={p.name}
-                        onClick={() => onPatch({ color: p.tint })}
-                        whileHover={{ scale: 1.08 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="relative flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full border-2 transition-all"
-                        style={{
-                          borderColor: active ? deep : 'rgba(255,255,255,0.7)',
-                          background: active
-                            ? `linear-gradient(135deg, ${p.tint} 0%, ${p.mid} 100%)`
-                            : `linear-gradient(135deg, ${p.tint}80 0%, ${p.mid}60 100%)`,
-                          boxShadow: active
-                            ? `0 4px 14px -3px ${p.deep}55, inset 0 1px 0 rgba(255,255,255,0.6)`
-                            : '0 1px 4px rgba(0,0,0,0.06)',
-                        }}
-                      >
-                        <span
-                          className="size-5 rounded-full border border-white/80 shadow-sm grid place-items-center"
-                          style={{
-                            background: `linear-gradient(135deg, ${p.deep}cc, ${p.deep})`,
-                          }}
-                        >
-                          {active && (
-                            <motion.svg
-                              initial={{ scale: 0, rotate: -45 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              width="10" height="10" viewBox="0 0 10 10"
-                            >
-                              <path d="M2 5L4.5 7.5L8 3" stroke="white" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                            </motion.svg>
-                          )}
-                        </span>
-                        <span
-                          className="text-[10px] font-semibold capitalize"
-                          style={{
-                            color: active ? '#1e293b' : '#64748b',
-                          }}
-                        >
-                          {p.name}
-                        </span>
-                      </motion.button>
-                    )
-                  })}
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Notes
+                </h3>
+                <div className="relative">
+                  <textarea
+                    value={notes}
+                    onChange={(e) => handleNotes(e.target.value)}
+                    rows={3}
+                    placeholder="Anything to remember about this goal…"
+                    className="w-full text-sm px-4 py-3 rounded-2xl placeholder:text-slate-400 focus:outline-none resize-none transition-all"
+                    style={{
+                      background: 'rgba(255,255,255,0.65)',
+                      border: `1.5px solid ${entry.mid}50`,
+                      boxShadow: 'inset 0 1px 3px rgba(15, 23, 42, 0.04)',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = entry.mid
+                      e.target.style.background = 'rgba(255,255,255,0.85)'
+                      e.target.style.boxShadow = `inset 0 1px 3px rgba(15, 23, 42, 0.04), 0 0 0 3px ${entry.tint}60`
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = `${entry.mid}50`
+                      e.target.style.background = 'rgba(255,255,255,0.65)'
+                      e.target.style.boxShadow = 'inset 0 1px 3px rgba(15, 23, 42, 0.04)'
+                    }}
+                  />
+                  {notes && (
+                    <span className="absolute bottom-2 right-3 text-[9px] text-slate-400 tabular-nums">
+                      {notes.length}
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* ─── Divider ─── */}
-              <div
-                className="h-px"
-                style={{
-                  background: `linear-gradient(90deg, transparent, ${entry.mid}80, transparent)`,
-                }}
-              />
+              <div className="h-px" style={{ background: `linear-gradient(90deg, transparent, ${entry.mid}80, transparent)` }} />
 
-              {/* Progress + Done toggle */}
-              <div className="flex items-center gap-4">
-                <ProgressBar
-                  value={computedProgress}
-                  manual={!hasSubs}
-                  onChange={(v) => onPatch({ progress: v, done: v === 100 })}
-                />
-                <motion.button
-                  onClick={() => onPatch({ done: !task.done })}
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="shrink-0 text-xs font-bold px-5 py-2.5 rounded-2xl transition-all shadow-md flex items-center gap-2"
-                  style={
-                    task.done
-                      ? {
-                          background: `linear-gradient(135deg, ${entry.tint}, ${entry.mid})`,
-                          color: '#1e293b',
-                          border: `1px solid ${entry.mid}`,
-                          boxShadow: `0 4px 12px -3px ${deep}33`,
-                        }
-                      : {
-                          background: 'rgba(255,255,255,0.7)',
-                          color: '#475569',
-                          border: '1px solid rgba(255,255,255,0.8)',
-                        }
-                  }
-                >
-                  {task.done && <Logo size={14} />}
-                  {task.done ? 'Done' : 'Mark done'}
-                </motion.button>
-              </div>
-
-              {/* ─── Divider ─── */}
-              <div
-                className="h-px"
-                style={{
-                  background: `linear-gradient(90deg, transparent, ${entry.mid}80, transparent)`,
-                }}
-              />
-
-              {/* Subtasks section */}
+              {/* 2. Subtasks */}
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     Daily subtasks
                   </h3>
                   {subtasks.length > 0 && (
                     <span
                       className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      style={{
-                        background: `${entry.tint}`,
-                        color: deep,
-                      }}
+                      style={{ background: entry.tint, color: deep }}
                     >
                       {subtasks.filter((s) => s.done).length}/{subtasks.length}
                     </span>
@@ -327,46 +255,69 @@ export default function TaskDetailModal({
               </div>
 
               {/* ─── Divider ─── */}
-              <div
-                className="h-px"
-                style={{
-                  background: `linear-gradient(90deg, transparent, ${entry.mid}80, transparent)`,
-                }}
-              />
+              <div className="h-px" style={{ background: `linear-gradient(90deg, transparent, ${entry.mid}80, transparent)` }} />
 
-              {/* Notes section */}
-              <div className="flex flex-col gap-2">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                  Notes
-                </h3>
-                <div className="relative">
-                  <textarea
-                    value={notes}
-                    onChange={(e) => handleNotes(e.target.value)}
-                    rows={3}
-                    placeholder="Anything to remember about this goal…"
-                    className="w-full text-sm px-4 py-3 rounded-2xl placeholder:text-slate-400 focus:outline-none resize-none transition-all"
-                    style={{
-                      background: 'rgba(255,255,255,0.65)',
-                      border: `1.5px solid ${entry.mid}50`,
-                      boxShadow: 'inset 0 1px 3px rgba(15, 23, 42, 0.04)',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = `${entry.mid}`
-                      e.target.style.background = 'rgba(255,255,255,0.85)'
-                      e.target.style.boxShadow = `inset 0 1px 3px rgba(15, 23, 42, 0.04), 0 0 0 3px ${entry.tint}60`
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = `${entry.mid}50`
-                      e.target.style.background = 'rgba(255,255,255,0.65)'
-                      e.target.style.boxShadow = 'inset 0 1px 3px rgba(15, 23, 42, 0.04)'
-                    }}
-                  />
-                  {notes && (
-                    <span className="absolute bottom-2 right-3 text-[9px] text-slate-400 tabular-nums">
-                      {notes.length} chars
-                    </span>
-                  )}
+              {/* 3. Done toggle — no progress bar */}
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Status
+                </span>
+                <motion.button
+                  onClick={() => onPatch({ done: !task.done })}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="text-xs font-bold px-5 py-2.5 rounded-2xl transition-all flex items-center gap-2"
+                  style={
+                    task.done
+                      ? {
+                          background: `linear-gradient(135deg, ${entry.tint}, ${entry.mid})`,
+                          color: '#1e293b',
+                          border: `1px solid ${entry.mid}`,
+                          boxShadow: `0 4px 12px -3px ${deep}33`,
+                        }
+                      : {
+                          background: 'rgba(255,255,255,0.7)',
+                          color: '#475569',
+                          border: '1px solid rgba(203,213,225,0.8)',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                        }
+                  }
+                >
+                  {task.done && <Logo size={14} tint={tint} deep={deep} />}
+                  {task.done ? 'Completed' : 'Mark complete'}
+                </motion.button>
+              </div>
+
+              {/* ─── Divider ─── */}
+              <div className="h-px" style={{ background: `linear-gradient(90deg, transparent, ${entry.mid}80, transparent)` }} />
+
+              {/* 4. Minimal color picker — dots only */}
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 shrink-0">
+                  Color
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {PALETTE.map((p) => {
+                    const active = p.tint === task.color
+                    return (
+                      <button
+                        key={p.name}
+                        title={p.name}
+                        onClick={() => onPatch({ color: p.tint })}
+                        className="rounded-full transition-all"
+                        style={{
+                          width: active ? 24 : 20,
+                          height: active ? 24 : 20,
+                          background: `linear-gradient(135deg, ${p.tint}, ${p.deep})`,
+                          border: active ? '2.5px solid #1e293b' : '2px solid rgba(255,255,255,0.9)',
+                          boxShadow: active
+                            ? `0 0 0 2px ${p.deep}50, 0 2px 8px -1px ${p.deep}60`
+                            : '0 1px 3px rgba(0,0,0,0.12)',
+                          transform: active ? 'scale(1.15)' : 'scale(1)',
+                        }}
+                      />
+                    )
+                  })}
                 </div>
               </div>
             </div>

@@ -39,7 +39,7 @@ function InboxDropZone({ children }) {
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 min-h-0 overflow-y-auto rounded-xl px-1 py-1 transition ${
+      className={`flex-1 min-h-0 overflow-y-auto rounded-xl px-4 py-1 transition ${
         isOver ? "bg-white/40 ring-2 ring-violet-300/60" : ""
       }`}
     >
