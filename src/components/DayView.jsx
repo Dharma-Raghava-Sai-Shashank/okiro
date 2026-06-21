@@ -165,40 +165,58 @@ export default function DayView({
       {/* Quick Add */}
       {showQuickAdd && (
         <div
-          className="rounded-2xl border border-white/60 p-5"
+          className="rounded-2xl px-5 py-4"
           style={{
-            background: "linear-gradient(170deg, rgba(255,255,255,0.97) 0%, rgba(250,252,255,0.95) 50%, rgba(255,255,255,0.92) 100%)",
+            background: "rgba(255,255,255,0.85)",
+            border: "1px solid rgba(255,255,255,0.7)",
+            boxShadow: "0 4px 20px -8px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,1)",
           }}
         >
-          <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <span className="text-lg">✨</span> Add New Task
-          </h3>
-          <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-1.5 mb-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              New Task
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
             <input
               value={quickTitle}
               onChange={(e) => setQuickTitle(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
-              placeholder="What do you want to accomplish today?"
-              className="w-full text-sm px-3 py-2 bg-white/50 border border-white/60 rounded-xl placeholder:text-slate-400 focus:bg-white/70 focus:outline-none transition"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleQuickAdd();
+                if (e.key === "Escape") setShowQuickAdd(false);
+              }}
+              placeholder="Name your next task for today…"
+              className="flex-1 text-sm font-medium px-4 py-2.5 rounded-xl placeholder:text-slate-300 text-slate-800 focus:outline-none transition-all"
+              style={{
+                background: "rgba(248,250,255,0.9)",
+                border: "1.5px solid rgba(199,210,254,0.6)",
+              }}
+              onFocus={(e) => { e.target.style.borderColor = "rgba(139,92,246,0.4)"; e.target.style.boxShadow = "0 0 0 3px rgba(139,92,246,0.08)"; }}
+              onBlur={(e) => { e.target.style.borderColor = "rgba(199,210,254,0.6)"; e.target.style.boxShadow = "none"; }}
               autoFocus
             />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleQuickAdd}
-                disabled={!quickTitle.trim()}
-                className="flex-1 text-sm font-bold px-4 py-2 text-white rounded-xl bg-gradient-to-r from-green-400 to-emerald-500 disabled:opacity-50 hover:scale-105 transition"
-              >
-                Create
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowQuickAdd(false)}
-                className="text-sm px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-xl transition"
-              >
-                Cancel
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleQuickAdd}
+              disabled={!quickTitle.trim()}
+              className="shrink-0 text-xs font-bold px-5 py-2.5 rounded-xl text-white transition-all disabled:opacity-40"
+              style={{
+                background: "linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)",
+                boxShadow: "0 4px 12px -3px rgba(124,58,237,0.4)",
+              }}
+            >
+              Add
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowQuickAdd(false); setQuickTitle(""); }}
+              className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+            </button>
           </div>
         </div>
       )}
@@ -289,7 +307,7 @@ export default function DayView({
       </div>
 
       {/* Row 2: Summary — more inset, visually centered */}
-      <div className="px-20">
+      <div className="px-40">
         <DaySummaryCard date={anchor} dayTasks={dayTasks} />
       </div>
     </div>

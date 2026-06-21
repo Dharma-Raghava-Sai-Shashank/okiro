@@ -30,8 +30,8 @@ export default function WeekView({
               onClickCell={onPickDay}
             />
 
-            {/* Rectangle: Task list card — takes remaining width */}
-            <div className="flex-1 min-w-0">
+            {/* Rectangle: Task list card — 30% width */}
+            <div className="w-[30%] shrink-0">
               <DayCell
                 date={d}
                 tasks={tasks}
@@ -41,10 +41,10 @@ export default function WeekView({
                 size="week"
               />
             </div>
-            
-            {/* New Summary Card: takes remaining width equally */}
+
+            {/* Summary Card — takes remaining space */}
             <div className="flex-1 min-w-0">
-              <DaySummaryCard date={d} dayTasks={dayTasks} />
+              <DaySummaryCard date={d} dayTasks={dayTasks} compact />
             </div>
           </div>
         )

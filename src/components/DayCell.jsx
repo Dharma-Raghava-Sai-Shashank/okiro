@@ -113,7 +113,7 @@ export default function DayCell({
 
   /* ---------- Classic chip rendering (Week & Day Views) ---------- */
   const renderChips = () => (
-    <div className="flex-1 flex flex-col gap-1.5 min-h-0 overflow-y-auto px-10 relative z-[1]">
+    <div className={`flex-1 flex flex-col gap-1.5 min-h-0 overflow-y-auto relative z-[1] ${size === "xl" ? "px-10" : size === "week" ? "px-4" : "pr-0.5"}`}>
       {dayTasks.length === 0 && size !== "sm" && (
         <div className="flex-1 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
           <span className="text-[10px] text-slate-400 font-medium tracking-wide italic">
